@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Showroom Inventory</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 15px;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            padding: 25px 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Interactive Filtering UI (Now at Top) */
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 14px;
+            top: 12px;
+            font-size: 15px;
+            opacity: 0.7;
+        }
+
+        .filter-select {
+            width: 130px;
+        }
+
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+
+        .stat-card p {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-card h2 {
+            font-size: 22px;
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #fff;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            border: 1px solid #475569;
+            padding: 10px;
+            font-size: 13px;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        /* Car Cards List */
+        .car-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .car-item {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .car-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #3b82f6;
+        }
+
+        .car-item.sold::before {
+            background: #ef4444;
+        }
+
+        .car-main-info h3 {
+            font-size: 18px;
+            color: #f8fafc;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .badge-status {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .badge-status.status-sold {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .car-right-side {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .car-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: #10b981;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #334155;
+        }
+
+        .backup-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Showroom Pro</h1>
+        <p>Advanced Vehicle Intelligence Dashboard</p>
+    </header>
+
+    <div class="controls-row">
+        <div class="search-box">
+            <input type="text" id="searchBar" placeholder="Search specs, colors, models..." oninput="displayInventory()">
+        </div>
+        <select id="statusFilter" class="filter-select" onchange="displayInventory()">
+            <option value="All">All Status</option>
+            <option value="Available">Available</option>
+            <option value="Sold">Sold</option>
+        </select>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p>Active Fleet Count</p>
+            <h2 id="statTotal">0 Units</h2>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 25px;" class="car-list" id="carList"></div>
+
+    <div class="card">
+        <div class="card-title">➕ Add New Vehicle</div>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label for="carModel">Vehicle Model / Brand</label>
+                <input type="text" id="carModel" placeholder="e.g., Nissan Patrol">
+            </div>
+            <div class="form-group">
+                <label for="carYear">Model Year</label>
+                <input type="number" id="carYear" placeholder="e.g., 2025">
+            </div>
+            <div class="form-group">
+                <label for="carColor">Color</label>
+                <input type="text" id="carColor" placeholder="e.g., Pearl White">
+            </div>
+            <div class="form-group">
+                <label for="carMileage">Mileage (KM)</label>
+                <input type="number" id="carMileage" placeholder="e.g., 15000">
+            </div>
+            <div class="form-group">
+                <label for="carPrice">Price (AED)</label>
+                <input type="number" id="carPrice" placeholder="e.g., 185000">
+            </div>
+            <div class="form-group full-width">
+                <label for="carStatus">Availability Status</label>
+                <select id="carStatus">
+                    <option value="Available">Available</option>
+                    <option value="Sold">Sold</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn" onclick="addCar()">Save to Fleet</button>
+    </div>
+
+    <div class="card" style="margin-top: 25px;">
+        <div class="card-title">⚙️ Data Backup Utilities</div>
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Export files to back up your records or import saved data back into Acode.</p>
+        <div class="backup-section">
+            <button class="btn btn-secondary" onclick="exportData()">📥 Export System Backup</button>
+            <button class="btn btn-secondary" onclick="importData()">📤 Restore Database</button>
+        </div>
+    </div>
+
+    <script>
+        let inventory = JSON.parse(localStorage.getItem('showroom_advanced_inventory')) || [];
+
+        function addCar() {
+            const model = document.getElementById('carModel').value.trim();
+            const year = document.getElementById('carYear').value.trim();
+            const color = document.getElementById('carColor').value.trim() || 'N/A';
+            const mileage = document.getElementById('carMileage').value.trim() || '0';
+            const price = document.getElementById('carPrice').value.trim();
+            const status = document.getElementById('carStatus').value;
+
+            if (!model || !year || !price) {
+                alert('Crucial details missing! Please input Model, Year, and Price.');
+                return;
+            }
+
+            const vehicle = {
+                id: Date.now(),
+                model: model,
+                year: parseInt(year),
+                color: color,
+                mileage: parseInt(mileage),
+                price: parseFloat(price),
+                status: status
+            };
+
+            inventory.push(vehicle);
+            saveData();
+            displayInventory();
+            clearInputs();
+        }
+
+        function deleteCar(id) {
+            if (confirm("Permanently purge this vehicle configuration from your main directory?")) {
+                inventory = inventory.filter(car => car.id !== id);
+                saveData();
+                displayInventory();
+            }
+        }
+
+        function toggleStatus(id) {
+            inventory = inventory.map(car => {
+                if (car.id === id) {
+                    car.status = car.status === 'Available' ? 'Sold' : 'Available';
+                }
+                return car;
+            });
+            saveData();
+            displayInventory();
+        }
+
+        function saveData() {
+            localStorage.setItem('showroom_advanced_inventory', JSON.stringify(inventory));
+        }
+
+        function clearInputs() {
+            document.getElementById('carModel').value = '';
+            document.getElementById('carYear').value = '';
+            document.getElementById('carColor').value = '';
+            document.getElementById('carMileage').value = '';
+            document.getElementById('carPrice').value = '';
+            document.getElementById('carStatus').value = 'Available';
+        }
+
+        function calculateAnalytics(filteredList) {
+            document.getElementById('statTotal').textContent = `${filteredList.length} Unit${filteredList.length !== 1 ? 's' : ''}`;
+        }
+
+        function displayInventory() {
+            const listContainer = document.getElementById('carList');
+            const searchKeyword = document.getElementById('searchBar').value.toLowerCase();
+            const activeFilter = document.getElementById('statusFilter').value;
+            
+            listContainer.innerHTML = '';
+
+            // Apply Filters
+            let filtered = inventory.filter(car => {
+                const matchesSearch = car.model.toLowerCase().includes(searchKeyword) || 
+                                      car.year.toString().includes(searchKeyword) ||
+                                      car.color.toLowerCase().includes(searchKeyword);
+                
+                const matchesStatus = (activeFilter === 'All') || (car.status === activeFilter);
+                
+                return matchesSearch && matchesStatus;
+            });
+
+            calculateAnalytics(filtered);
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = '<div class="no-results">No elite listings fit current filters.</div>';
+                return;
+            }
+
+            filtered.forEach(car => {
+                const carItem = document.createElement('div');
+                carItem.className = `car-item ${car.status.toLowerCase() === 'sold' ? 'sold' : ''}`;
+                
+                carItem.innerHTML = `
+                    <div class="car-main-info">
+                        <h3>${car.model} (${car.year})</h3>
+                        <div class="meta-badges">
+                            <span class="badge" style="border-bottom: 2px solid ${getColorHex(car.color)};">🎨 ${car.color}</span>
+                            <span class="badge">🛣️ ${car.mileage.toLocaleString()} KM</span>
+                            <span class="badge badge-status ${car.status === 'Sold' ? 'status-sold' : ''}">${car.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="car-right-side">
+                        <div class="car-price">${car.price.toLocaleString()} AED</div>
+                        <div class="action-row">
+                            <button class="action-btn" onclick="toggleStatus(${car.id})" title="Toggle Status">🔄</button>
+                            <button class="action-btn" onclick="deleteCar(${car.id})" title="Delete Listing">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(carItem);
+            });
+        }
+
+        function getColorHex(colorName) {
+            const lower = colorName.toLowerCase();
+            if(lower.includes('white')) return '#ffffff';
+            if(lower.includes('black')) return '#000000';
+            if(lower.includes('red')) return '#ef4444';
+            if(lower.includes('blue')) return '#3b82f6';
+            if(lower.includes('grey') || lower.includes('gray')) return '#64748b';
+            if(lower.includes('silver')) return '#cbd5e1';
+            return 'transparent';
+        }
+
+        function exportData() {
+            if(inventory.length === 0) {
+                alert("Inventory dataset is completely empty.");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(inventory));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `showroom_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData() {
+            const jsonInput = prompt("Paste your exported showroom backup JSON text here:");
+            if (!jsonInput) return;
+            
+            try {
+                const parsed = JSON.parse(jsonInput);
+                if (Array.isArray(parsed)) {
+                    inventory = parsed;
+                    saveData();
+                    displayInventory();
+                    alert("Database context synced successfully!");
+                } else {
+                    alert("Invalid structural format.");
+                }
+            } catch (e) {
+                alert("Failed to parse data payload safely.");
+            }
+        }
+
+        displayInventory();
+    </script>
+</body>
+</html>
