@@ -179,6 +179,14 @@
             background: #1d4ed8;
         }
 
+        .btn-update {
+            background: #f59e0b !important;
+        }
+
+        .btn-update:hover {
+            background: #d97706 !important;
+        }
+
         .btn-secondary {
             background: #334155;
             border: 1px solid #475569;
@@ -301,6 +309,7 @@
             color: #64748b;
             font-style: italic;
         }
+    </style>
 <style>
 :root {
   --bg-color: #0b0f17 !important;
@@ -388,8 +397,8 @@ html {
 
     <div style="margin-bottom: 25px;" class="car-list" id="carList"></div>
 
-    <div class="card">
-        <div class="card-title">➕ Add New Vehicle</div>
+    <div class="card" id="formCard">
+        <div class="card-title" id="formTitle">➕ Add New Vehicle</div>
         <div class="form-grid">
             <div class="form-group full-width">
                 <label for="carModel">Vehicle Model / Brand</label>
@@ -419,7 +428,8 @@ html {
                 </select>
             </div>
         </div>
-        <button class="btn" onclick="addCar()">Save to Fleet</button>
+        <button class="btn" id="submitBtn" onclick="handleSubmit()">Save to Fleet</button>
+        <button class="btn btn-secondary" id="cancelEditBtn" onclick="cancelEditing()" style="display: none; margin-top: 10px;">❌ Cancel Edit</button>
     </div>
 
     <div class="card" style="margin-top: 25px;">
@@ -433,6 +443,15 @@ html {
 
     <script>
         let inventory = JSON.parse(localStorage.getItem('showroom_advanced_inventory')) || [];
+        let editVehicleId = null;
+
+        function handleSubmit() {
+            if (editVehicleId !== null) {
+                updateCar();
+            } else {
+                addCar();
+            }
+        }
 
         function addCar() {
             const model = document.getElementById('carModel').value.trim();
@@ -463,8 +482,79 @@ html {
             clearInputs();
         }
 
+        function startEdit(id) {
+            const car = inventory.find(item => item.id === id);
+            if (!car) return;
+
+            editVehicleId = id;
+
+            // Populate form
+            document.getElementById('carModel').value = car.model;
+            document.getElementById('carYear').value = car.year;
+            document.getElementById('carColor').value = car.color === 'N/A' ? '' : car.color;
+            document.getElementById('carMileage').value = car.mileage;
+            document.getElementById('carPrice').value = car.price;
+            document.getElementById('carStatus').value = car.status;
+
+            // Change UI text to indicate edit mode
+            document.getElementById('formTitle').textContent = "✏️ Edit Vehicle Configuration";
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = "Update Vehicle Details";
+            submitBtn.classList.add('btn-update');
+            document.getElementById('cancelEditBtn').style.display = 'block';
+
+            // Smooth scroll down to the editing form card
+            document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateCar() {
+            const model = document.getElementById('carModel').value.trim();
+            const year = document.getElementById('carYear').value.trim();
+            const color = document.getElementById('carColor').value.trim() || 'N/A';
+            const mileage = document.getElementById('carMileage').value.trim() || '0';
+            const price = document.getElementById('carPrice').value.trim();
+            const status = document.getElementById('carStatus').value;
+
+            if (!model || !year || !price) {
+                alert('Crucial details missing! Please input Model, Year, and Price.');
+                return;
+            }
+
+            inventory = inventory.map(car => {
+                if (car.id === editVehicleId) {
+                    return {
+                        ...car,
+                        model: model,
+                        year: parseInt(year),
+                        color: color,
+                        mileage: parseInt(mileage),
+                        price: parseFloat(price),
+                        status: status
+                    };
+                }
+                return car;
+            });
+
+            saveData();
+            displayInventory();
+            cancelEditing();
+        }
+
+        function cancelEditing() {
+            editVehicleId = null;
+            clearInputs();
+            document.getElementById('formTitle').textContent = "➕ Add New Vehicle";
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = "Save to Fleet";
+            submitBtn.classList.remove('btn-update');
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
         function deleteCar(id) {
             if (confirm("Permanently purge this vehicle configuration from your main directory?")) {
+                if (editVehicleId === id) {
+                    cancelEditing();
+                }
                 inventory = inventory.filter(car => car.id !== id);
                 saveData();
                 displayInventory();
@@ -480,6 +570,12 @@ html {
             });
             saveData();
             displayInventory();
+            
+            // Sync status inside the edit form if we're live-editing this specific car
+            if (editVehicleId === id) {
+                const currentCar = inventory.find(item => item.id === id);
+                document.getElementById('carStatus').value = currentCar.status;
+            }
         }
 
         function saveData() {
@@ -540,6 +636,7 @@ html {
                     <div class="car-right-side">
                         <div class="car-price">${car.price.toLocaleString()} AED</div>
                         <div class="action-row">
+                            <button class="action-btn" onclick="startEdit(${car.id})" title="Edit Details">✏️</button>
                             <button class="action-btn" onclick="toggleStatus(${car.id})" title="Toggle Status">🔄</button>
                             <button class="action-btn" onclick="deleteCar(${car.id})" title="Delete Listing">🗑️</button>
                         </div>
@@ -584,6 +681,7 @@ html {
                     inventory = parsed;
                     saveData();
                     displayInventory();
+                    cancelEditing();
                     alert("Database context synced successfully!");
                 } else {
                     alert("Invalid structural format.");
