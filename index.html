@@ -300,13 +300,44 @@
             color: #64748b;
             font-style: italic;
         }
-    </style>
+<style>
+:root {
+  --bg-color: #0b0f17 !important;
+  --card-bg: #131924 !important;
+  --card-border: #222c3e !important;
+  --text-main: #ffffff !important;
+  --text-muted: #94a3b8 !important;
+  --accent-green: #10b981 !important;
+}
+
+body {
+  background-color: var(--bg-color) !important;
+  color: var(--text-main) !important;
+}
+
+h1 {
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
+  margin-bottom: 20px !important;
+}
+
+.card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.car-price {
+  color: var(--accent-green) !important;
+}
+</style>
+
 </head>
 <body>
 
     <header>
         <h1>Cars</h1>
-        <p>Advanced Vehicle Intelligence Dashboard</p>
     </header>
 
     <div class="controls-row">
