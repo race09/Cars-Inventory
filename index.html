@@ -420,6 +420,24 @@ html {
                 <label for="carPrice">Price (AED)</label>
                 <input type="number" id="carPrice" placeholder="e.g., 185000">
             </div>
+            <div class="form-group">
+                <label for="carSpec">Regional Specification</label>
+                <select id="carSpec">
+                    <option value="GCC Spec">GCC Spec</option>
+                    <option value="American Spec">American Spec</option>
+                    <option value="Canadian Spec">Canadian Spec</option>
+                    <option value="European Spec">European Spec</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="carCondition">Condition</label>
+                <select id="carCondition">
+                    <option value="Excellent">Excellent</option>
+                    <option value="Brand New">Brand New (0 KM)</option>
+                    <option value="Very Good">Very Good</option>
+                    <option value="Good">Good</option>
+                </select>
+            </div>
             <div class="form-group full-width">
                 <label for="carStatus">Availability Status</label>
                 <select id="carStatus">
@@ -459,6 +477,8 @@ html {
             const color = document.getElementById('carColor').value.trim() || 'N/A';
             const mileage = document.getElementById('carMileage').value.trim() || '0';
             const price = document.getElementById('carPrice').value.trim();
+            const spec = document.getElementById('carSpec').value;
+            const condition = document.getElementById('carCondition').value;
             const status = document.getElementById('carStatus').value;
 
             if (!model || !year || !price) {
@@ -473,6 +493,8 @@ html {
                 color: color,
                 mileage: parseInt(mileage),
                 price: parseFloat(price),
+                spec: spec,
+                condition: condition,
                 status: status
             };
 
@@ -494,6 +516,8 @@ html {
             document.getElementById('carColor').value = car.color === 'N/A' ? '' : car.color;
             document.getElementById('carMileage').value = car.mileage;
             document.getElementById('carPrice').value = car.price;
+            document.getElementById('carSpec').value = car.spec || 'GCC Spec';
+            document.getElementById('carCondition').value = car.condition || 'Excellent';
             document.getElementById('carStatus').value = car.status;
 
             // Change UI text to indicate edit mode
@@ -513,6 +537,8 @@ html {
             const color = document.getElementById('carColor').value.trim() || 'N/A';
             const mileage = document.getElementById('carMileage').value.trim() || '0';
             const price = document.getElementById('carPrice').value.trim();
+            const spec = document.getElementById('carSpec').value;
+            const condition = document.getElementById('carCondition').value;
             const status = document.getElementById('carStatus').value;
 
             if (!model || !year || !price) {
@@ -529,6 +555,8 @@ html {
                         color: color,
                         mileage: parseInt(mileage),
                         price: parseFloat(price),
+                        spec: spec,
+                        condition: condition,
                         status: status
                     };
                 }
@@ -571,7 +599,6 @@ html {
             saveData();
             displayInventory();
             
-            // Sync status inside the edit form if we're live-editing this specific car
             if (editVehicleId === id) {
                 const currentCar = inventory.find(item => item.id === id);
                 document.getElementById('carStatus').value = currentCar.status;
@@ -588,6 +615,8 @@ html {
             document.getElementById('carColor').value = '';
             document.getElementById('carMileage').value = '';
             document.getElementById('carPrice').value = '';
+            document.getElementById('carSpec').value = 'GCC Spec';
+            document.getElementById('carCondition').value = 'Excellent';
             document.getElementById('carStatus').value = 'Available';
         }
 
@@ -604,9 +633,14 @@ html {
 
             // Apply Filters
             let filtered = inventory.filter(car => {
+                const currentSpec = car.spec ? car.spec.toLowerCase() : '';
+                const currentCondition = car.condition ? car.condition.toLowerCase() : '';
+                
                 const matchesSearch = car.model.toLowerCase().includes(searchKeyword) || 
                                       car.year.toString().includes(searchKeyword) ||
-                                      car.color.toLowerCase().includes(searchKeyword);
+                                      car.color.toLowerCase().includes(searchKeyword) ||
+                                      currentSpec.includes(searchKeyword) ||
+                                      currentCondition.includes(searchKeyword);
                 
                 const matchesStatus = (activeFilter === 'All') || (car.status === activeFilter);
                 
@@ -624,12 +658,18 @@ html {
                 const carItem = document.createElement('div');
                 carItem.className = `car-item ${car.status.toLowerCase() === 'sold' ? 'sold' : ''}`;
                 
+                // Fallback text if legacy cars don't have these details yet
+                const specText = car.spec || 'GCC Spec';
+                const conditionText = car.condition || 'Excellent';
+
                 carItem.innerHTML = `
                     <div class="car-main-info">
                         <h3>${car.model} (${car.year})</h3>
                         <div class="meta-badges">
                             <span class="badge" style="border-bottom: 2px solid ${getColorHex(car.color)};">🎨 ${car.color}</span>
                             <span class="badge">🛣️ ${car.mileage.toLocaleString()} KM</span>
+                            <span class="badge">🌍 ${specText}</span>
+                            <span class="badge">✨ ${conditionText}</span>
                             <span class="badge badge-status ${car.status === 'Sold' ? 'status-sold' : ''}">${car.status.toUpperCase()}</span>
                         </div>
                     </div>
